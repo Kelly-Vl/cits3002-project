@@ -60,7 +60,7 @@ class Host:
 
         dst_mac = self.arp_table[next_hop_ip]
 
-        print(f"{self.name}: Layer 2: Destination MAC lookup for next-hop IP ({next_hop_ip}) → {dst_mac}")
+        print(f"{self.name}: Layer 2: Destination MAC lookup for next-hop IP ({next_hop_ip}) --> {dst_mac}")
 
         frame = Frame(
             src_mac=self.mac,
@@ -142,7 +142,7 @@ class Router:
         old_ttl = packet.ttl
         packet.ttl -= 1
 
-        print(f"{self.name}: Layer 3: TTL decremented: {old_ttl} → {packet.ttl}")
+        print(f"{self.name}: Layer 3: TTL decremented: {old_ttl} --> {packet.ttl}")
 
         if packet.ttl <= 0:
             print(f"{self.name}: Layer 3: Packet dropped due to TTL expiry")
@@ -167,7 +167,7 @@ class Router:
 
         dst_mac = self.arp_table[next_hop_ip]
 
-        print(f"{self.name}: Layer 2: Destination MAC lookup for next-hop IP ({next_hop_ip}) → {dst_mac}")
+        print(f"{self.name}: Layer 2: Destination MAC lookup for next-hop IP ({next_hop_ip}) --> {dst_mac}")
 
         new_frame = Frame(
             src_mac=src_mac,
