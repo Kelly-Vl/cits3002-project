@@ -301,11 +301,11 @@ class Router:
 
         ## find destination MAC using the ARP table
         if next_hop_ip not in self.arp_table:
+            ## prevents KeyError if the ARP is missing an entry 
             print(f"{self.name}: Layer 2: Frame dropped because no MAC address was found for next-hop IP {next_hop_ip}")
             return False
 
         dst_mac = self.arp_table[next_hop_ip]
-
 
         print(f"{self.name}: Layer 2: Destination MAC lookup for next-hop IP ({next_hop_ip}) --> {dst_mac}")
 
