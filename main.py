@@ -55,7 +55,7 @@ def main():
     NETWORK_DEVICES["Host B"] = host_b
     NETWORK_DEVICES["Router R1"] = router
 
-    # Create data payload
+    # Create data payload (message of "X" characters)
     data = "X" * message_size
 
     # Sending data from Host A to Host B
