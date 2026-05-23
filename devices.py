@@ -31,8 +31,8 @@ class Host:
 
     def send_segment(self, segment, dst_ip, router):
         packet = Packet(
-            src_ip=SRC_PORT,
-            dst_ip=DST_PORT,
+            src_ip=self.ip,
+            dst_ip=dst_ip,
             payload=segment
         )
 
@@ -65,7 +65,7 @@ class Host:
         print(f"{self.name}: Layer 2: Frame created: SRC_MAC={self.mac}, DST_MAC={dst_mac}")
         print(f"{self.name}: Layer 2: Frame sent")
 
-        next_device.receive_frame(frame, self)
+        router.receive_frame(frame, self)
 
     def receive_frame(self, frame, sender):
         print(f"{self.name}: Layer 2: Frame received")
