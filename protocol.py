@@ -20,7 +20,7 @@ class Segment:
         total = 0
         for ch in text: 
             total += ord(ch)
-        checksum = total % 256
+        checksum = total % 65536
 
         return checksum
 
