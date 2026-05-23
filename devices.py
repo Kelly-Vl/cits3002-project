@@ -219,7 +219,7 @@ class Router:
         self.arp_table = arp_table
         self.mac_learning_table = {} ## learned MAC addresses 
 
-    def loopup_route(self, dst_ip): 
+    def lookup_route(self, dst_ip): 
         ## checks which network the destination IP belongs to
         for network, route in self.routing_table.items():
             if ip_in_network(dst_ip, network):
@@ -235,8 +235,12 @@ class Router:
         ## the destination MAC tells the router which interface received the frame
         if frame.dst_mac == R1_INTERFACE_1_MAC:
             incoming_interface = "Interface 1"
-        else:
+        elif frame.dst_mac == R1_INTERFACE_2_MAC:
             incoming_interface = "Interface 2"
+        else:
+            ## prevents router from assuming every non-Interface-1 frame belongs to Interface 2 
+            print(f"{self.name}: Layer 2: Frame dropped because destination MAC does not match router")
+            return False
 
         ## Layer 2 logging 
         print(f"{self.name}: Layer 2: Frame received on {incoming_interface}")
@@ -252,7 +256,7 @@ class Router:
         print(f"{self.name}: Layer 3: Packet received from Data Link Layer: SRC_IP={packet.src_ip}, DST_IP={packet.dst_ip}, TTL={packet.ttl}")
         print(f"{self.name}: Layer 3: Destination IP read: {packet.dst_ip}")
 
-        ## every router hop reduced TTL 
+        ## every router hop reduces TTL 
         old_ttl = packet.ttl
         packet.ttl -= 1
 
