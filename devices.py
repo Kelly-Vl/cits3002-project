@@ -29,9 +29,9 @@ class Host:
         self.routing_table = routing_table
         self.arp_table = arp_table
 
-        self.seq_num = 0       ## DATA sequence number this host will send next
-        self.expected_seq = 0  ## DATA sequence number this host expects to receive 
-        self.last_ack_seq = 1  ## for when receiving duplicate or corrupted data
+        self.seq_num = 0          ## DATA sequence number this host will send next
+        self.expected_seq = 0     ## DATA sequence number this host expects to receive 
+        self.last_ack_seq = None  ## for when receiving duplicate or corrupted data
 
     def lookup_route(self, dst_ip):
         ## checks routing table first for local network & default route
@@ -51,9 +51,8 @@ class Host:
             for i in range(0, len(data), MAX_SEGMENT_SIZE)
         ]
 
+        print(f"{self.name}: Layer 4: Data received from Application Layer. Data size={len(data)}")
         for chunk in chunks:
-            print(f"{self.name}: Layer 4: Data received from Application Layer. Data size={len(chunk)}")
-
             ack_received = False
 
             ## DATA segment creation
@@ -78,8 +77,7 @@ class Host:
 
     def send_segment(self, segment, dst_ip, router):
         ## host sends segment to Layer 3 (Network Layer)
-        print(f"{self.name}: Layer 3: Segment received from Transport Layer")
-        
+
         ## encapsulates Segment --> Packet
         packet = Packet(
             src_ip=self.ip,
@@ -87,7 +85,7 @@ class Host:
             payload=segment
         )
 
-        print(f"{self.name}: Layer 3: Packet created: SRC_IP={self.ip}, DST_IP={dst_ip}, TTL={packet.ttl}")
+        print(f"{self.name}: Layer 3: Segment received from Transport Layer: SRC_IP={self.ip}, DST_IP={dst_ip}, TTL={packet.ttl}")
         print(f"{self.name}: Layer 3: Destination IP read: {dst_ip}")
 
         ## decides the next-hop IP 
@@ -112,7 +110,7 @@ class Host:
         ## ARP table maps next-hop IPs to MAC addresses
         dst_mac = self.arp_table[next_hop_ip]
 
-        print(f"{self.name}: Layer 2: Destination MAC lookup for next-hop IP ({next_hop_ip}) --> {dst_mac}")
+        print(f"{self.name}: Layer 2: Destination MAC lookup for next-hop IP ({next_hop_ip}) → {dst_mac}")
 
         ## encapsulates Packet --> Frame
         frame = Frame(
@@ -156,16 +154,20 @@ class Host:
         if not segment.verify_checksum():
             print(f"{self.name}: Layer 4: Segment discarded due to checksum error")
 
-            ack = Segment(
-                src_port=DST_PORT,
-                dst_port=SRC_PORT,
-                seg_type=ACK_TYPE,
-                seq_num=self.last_ack_seq,
-                data=b""
-            )
+            ## only re-send a previous ACK if we've actually sent one before
+            ## once a valid DATA segment has been received and ACK'd, 
+            ## the guard passes and re-sending works correctly for all subsequent corruption cases
+            if self.last_ack_seq is not None:
+                ack = Segment(
+                    src_port=DST_PORT,
+                    dst_port=SRC_PORT,
+                    seg_type=ACK_TYPE,
+                    seq_num=self.last_ack_seq,
+                    data=b""
+                )
+                print(f"{self.name}: Layer 4: ACK sent: seq={self.last_ack_seq}")
+                self.send_segment(ack, src_ip, router)
 
-            print(f"{self.name}: Layer 4: ACK sent: seq={self.last_ack_seq}")
-            self.send_segment(ack, src_ip, router)
             return False
 
         print(f"{self.name}: Layer 4: Checksum verified")
@@ -193,7 +195,6 @@ class Host:
             )
 
             print(f"{self.name}: Layer 4: Segment created by adding transport layer header (ACK, seq={ack_seq})")
-            print(f"{self.name}: Layer 4: ACK sent: seq={ack_seq}")
             print(f"{self.name}: Layer 4: Segment sent to Network Layer")
 
             return self.send_segment(ack, src_ip, router)
@@ -260,7 +261,7 @@ class Router:
         old_ttl = packet.ttl
         packet.ttl -= 1
 
-        print(f"{self.name}: Layer 3: TTL decremented: {old_ttl} --> {packet.ttl}")
+        print(f"{self.name}: Layer 3: TTL decremented: {old_ttl} → {packet.ttl}")
 
         ## TTL expiry check to prevent infinite routing loops 
         if packet.ttl <= 0:
@@ -307,7 +308,7 @@ class Router:
 
         dst_mac = self.arp_table[next_hop_ip]
 
-        print(f"{self.name}: Layer 2: Destination MAC lookup for next-hop IP ({next_hop_ip}) --> {dst_mac}")
+        print(f"{self.name}: Layer 2: Destination MAC lookup for next-hop IP ({next_hop_ip}) → {dst_mac}")
 
         ## create a new frame for re-encapsulation (packet --> new Layer 2 frame)
         new_frame = Frame(

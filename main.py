@@ -22,7 +22,7 @@ def main():
         return
     
     # Error handling: Must send non-negative size
-    if message_size < 0:
+    if message_size <= 0:
         print("Error: message_size must be 0 or greater")
         return
     
