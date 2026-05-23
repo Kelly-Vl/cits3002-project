@@ -1,4 +1,4 @@
-# Implementes Host and Router classes
+# Implements Host and Router classes
 
 from config import * 
 from protocol import Segment, Packet, Frame
@@ -144,11 +144,9 @@ class Router:
         print(f"{self.name}: Layer 3: Routing table lookup performed")
 
         if packet.dst_ip.startswith("10.0.1."):
-            outgoing_interface = "eth0"
             interface_name = "Interface 1"
             src_mac = R1_INTERFACE_1_MAC
         else:
-            outgoing_interface = "eth1"
             interface_name = "Interface 2"
             src_mac = R1_INTERFACE_2_MAC
 
