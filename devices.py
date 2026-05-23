@@ -112,4 +112,72 @@ class Host:
     
     
 class Router:
+    def __init__(self, name, routing_table, arp_table):
+        self.name = name
+        self.routing_table = routing_table
+        self.arp_table = arp_table
 
+    def receive_frame(self, frame, sender):
+        packet = frame.payload
+
+        if frame.dst_mac == R1_INTERFACE_1_MAC: 
+            incoming_interface = "Interface 1"
+        else:
+            incoming_interface = "Interface 2"
+        
+        print(f"{self.name}: Layer 2: Frame received on {incoming_interface}")
+        print(f"{self.name}: Layer 2: Source MAC learned: {frame.src_mac} on {incoming_interface}")
+        print(f"{self.name}: Layer 2: Packet delivered to Network Layer")
+
+        print(f"{self.name}: Layer 3: Packet received from Data Link Layer: SRC_IP={packet.src_ip}, DST_IP={packet.dst_ip}, TTL={packet.ttl}")
+        print(f"{self.name}: Layer 3: Destination IP read: {packet.dst_ip}")
+
+        old_ttl = packet.ttl
+        packet.ttl -= 1
+
+        print(f"{self.name}: Layer 3: TTL decremented: {old_ttl} → {packet.ttl}")
+
+        if packet.ttl <= 0:
+            print(f"{self.name}: Layer 3: Packet dropped due to TTL expiry")
+            return
+        
+        print(f"{self.name}: Layer 3: Routing table lookup performed")
+
+        if packet.dst_ip.startswith("10.0.1."):
+            outgoing_interface = "eth0"
+            interface_name = "Interface 1"
+            src_mac = R1_INTERFACE_1_MAC
+        else:
+            outgoing_interface = "eth1"
+            interface_name = "Interface 2"
+            src_mac = R1_INTERFACE_2_MAC
+
+        next_hop_ip = packet.dst_ip
+
+        print(f"{self.name}: Layer 3: Next-hop IP determined: {next_hop_ip}")
+        print(f"{self.name}: Layer 3: Outgoing interface selected ({interface_name})")
+        print(f"{self.name}: Layer 3: Packet forwarded to Data Link Layer")
+
+        print(f"{self.name}: Layer 2: Packet received from Network Layer")
+
+        dst_mac = self.arp_table[next_hop_ip]
+
+        print(f"{self.name}: Layer 2: Destination MAC lookup for next-hop IP ({next_hop_ip}) → {dst_mac}")
+
+        new_frame = Frame(
+            src_mac=src_mac,
+            dst_mac=dst_mac,
+            payload=packet
+        )
+
+        print(f"{self.name}: Layer 2: Frame created: SRC_MAC={src_mac}, DST_MAC={dst_mac}")
+        print(f"{self.name}: Layer 2: Frame forwarded on {interface_name}")
+
+        if packet.dst_ip == HOST_A_IP:
+            NETWORK_DEVICES["Host A"].receive_frame(new_frame, self)
+        elif packet.dst_ip == HOST_B_IP:
+            NETWORK_DEVICES["Host B"].receive_frame(new_frame, self)
+
+
+
+NETWORK_DEVICES = {}
