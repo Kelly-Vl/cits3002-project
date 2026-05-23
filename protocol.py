@@ -1,8 +1,6 @@
 # Contains header definitions and classes for Layers 2,3, and 4
 
-from config import (SRC_PORT, DST_PORT, DATA_TYPE, 
-                    DEFAULT_TTL, PROTOCOL_UDP, 
-                    ETHER_TYPE_IPV4)
+from config import * 
 
 class Segment: 
     ## Layer 4 - Transport Layer
