@@ -13,21 +13,27 @@ class Host:
         self.seq_num = 0
     
     def send_data(self, data, dst_ip, router):
-        print(f"{self.name}: Layer 4: Data received from Application Layer. Data size={len(data)}")
+        chunks = [
+        data[i:i + MAX_SEGMENT_SIZE]
+        for i in range(0, len(data), MAX_SEGMENT_SIZE)
+        ]
 
-        segment = Segment(
-            data=data,
+        for chunk in chunks:
+            print(f"{self.name}: Layer 4: Data received from Application Layer. Data size={len(chunk)}")
+
+            segment = Segment(
+            data=chunk,
             src_port=SRC_PORT,
             dst_port=DST_PORT,
             seg_type=DATA_TYPE,
             seq_num=self.seq_num
         )
 
-        print(f"{self.name}: Layer 4: Checksum computed")
-        print(f"{self.name}: Layer 4: Segment created by adding transport layer header (DATA, seq={self.seq_num}) (encapsulation)")
-        print(f"{self.name}: Layer 4: Segment sent to Network Layer")
+            print(f"{self.name}: Layer 4: Checksum computed")
+            print(f"{self.name}: Layer 4: Segment created by adding transport layer header (DATA, seq={self.seq_num}) (encapsulation)")
+            print(f"{self.name}: Layer 4: Segment sent to Network Layer")
 
-        self.send_segment(segment, dst_ip, router)
+            self.send_segment(segment, dst_ip, router)
 
     def send_segment(self, segment, dst_ip, router):
         packet = Packet(
@@ -102,6 +108,7 @@ class Host:
             )
 
             print(f"{self.name}: Layer 4: Segment created by adding transport layer header (ACK, seq={segment.seq_num})")
+            print(f"{self.name}: Layer 4: ACK sent: seq={segment.seq_num}")
             print(f"{self.name}: Layer 4: Segment sent to Network Layer")
 
             self.send_segment(ack, src_ip, router)
