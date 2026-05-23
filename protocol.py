@@ -1,6 +1,8 @@
-# Contains header definisitions and classes for Layers 2,3, and 4
+# Contains header definitions and classes for Layers 2,3, and 4
 
-from config import SRC_PORT, DST_PORT, DATA_TYPE, DEFAULT_TTL, PROTOCOL_UDP, ETHER_TYPE_IPV4
+from config import (SRC_PORT, DST_PORT, DATA_TYPE, 
+                    DEFAULT_TTL, PROTOCOL_UDP, 
+                    ETHER_TYPE_IPV4)
 
 class Segment: 
     ## Layer 4 - Transport Layer
@@ -10,21 +12,21 @@ class Segment:
         self.src_port = src_port
         self.dst_port = dst_port
         self.length = len(data) + self.HEADER_SIZE 
-        self.checksum = self.compute_checksum() 
         self.seg_type = seg_type
         self.seq_num = seq_num
         self.data = data
+        self.checksum = self.compute_checksum()
 
     def compute_checksum(self): 
         text = f"{self.src_port}{self.dst_port}{self.length}{self.seg_type}{self.seq_num}{self.data}"
         total = 0
         for ch in text: 
             total += ord(ch)
-        checksum = total & 256
+        checksum = total % 256
 
         return checksum
 
-    def validity(self):
+    def is_valid(self):
         return self.checksum == self.compute_checksum()
 
         
@@ -42,8 +44,11 @@ class Packet:
 
 class Frame: 
     ## Layer 2 - Data Link Layer
-    def __init__(self, dst_mac, src_mac, payload, frame_type=ETHER_TYPE_IPV4):
-        self.dst_mac = dst_mac
+    HEADER_SIZE = 14 
+
+    def __init__(self, src_mac, dst_mac, payload, frame_type=ETHER_TYPE_IPV4):
         self.src_mac = src_mac
+        self.dst_mac = dst_mac
         self.frame_type = frame_type
         self.payload = payload
+        self.length = payload.length + self.HEADER_SIZE
