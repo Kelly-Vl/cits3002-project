@@ -29,7 +29,7 @@ To run the simulator, in the command line interface type:
 ```bash
 python main.py <message_size> 
 ```
-Where <message_size> is a positive integer representing the application message size in bytes.  For example:
+Where `<message_size>` is a positive integer representing the application message size in bytes.  For example:
 - `python main.py 10` --> Sends a 10-byte message
 - `python main.py 100` --> Sends a 100-byte message
 - `python main.py 1200` --> Sends a 1200-byte message (split into 3 segments)
@@ -39,10 +39,10 @@ Messages larger than 500 bytes are automatically split into multiple 500-byte se
 ## Project Structure
 ```
 cits3002-project/
-├── config.py   ## Network parameters (IPs, MACs, routing tables, ARP tables)
-├── devices.py  ## Host and Router class implementations
-├── main.py     ## Entry point and simulation 
-├── protocol.py ## Layer 2/3/4 header class definitions
+├── config.py       ## Network parameters (IPs, MACs, routing tables, ARP tables)
+├── devices.py      ## Host and Router class implementations
+├── main.py         ## Entry point and simulation 
+├── protocol.py     ## Layer 2/3/4 header class definitions
 └── README.md
 ```
 
