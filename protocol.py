@@ -15,13 +15,13 @@ class Frame:
     Represents a Data Link Layer frame (like an Ethernet frame)
 
     Fields:
-        dst_mac    : 6 bytes    -- where this frame is going (next hop on this link)
-        src_mac    : 6 bytes    -- who sent this frame
-        frame_type : 2 bytes    -- 0x0800 = IPv4 payload
-        payload    : variable   -- a Packet object
+        dst_mac: 6 bytes
+        src_mac: 6 bytes
+        frame_type: 2 bytes - 0x0800 = IPv4 payload
+        payload: variable - a Packet object
     """
 
-    ## Fixed header size in bytes: 6 (dst) + 6 (src) + 2 (type) = 14 bytes
+    ## Fixed header size: 6 (dst) + 6 (src) + 2 (type) = 14 bytes
     HEADER_SIZE = 14 
 
     def __init__(self, dst_mac, src_mac, payload, frame_type = ETHER_TYPE_IPV4):
@@ -41,15 +41,15 @@ class Packet:
     Represents a Network Layer packet (like an IPv4 packet)
 
     Fields:
-        src_ip    : 4 bytes   -- the original sender's IP
-        dst_ip    : 4 bytes   -- the final destination's IP
-        ttl       : 1 byte    -- Time To Live; decremented at every router
-        protocol  : 1 byte    -- 17 = UDP payload
-        total_length : 2 bytes   -- total packet size (header + payload) in bytes
-        payload   : variable  -- a Layer4_Segment object
+        src_ip: 4 bytes
+        dst_ip: 4 bytes
+        ttl: 1 byte - Time To Live; decremented at every router
+        protocol: 1 byte - 17 = UDP payload
+        total_length: 2 bytes - total packet size (header + payload) in bytes
+        payload: variable - a Layer4_Segment object
     """
 
-    # Fixed header size in bytes: 4 (src_ip) + 4 (dst_ip) + 1 (ttl) + 1 (protocol) + 2 (total_length) = 12 bytes
+    ## Fixed header size: 4 (src_ip) + 4 (dst_ip) + 1 (ttl) + 1 (protocol) + 2 (total_length) = 12 bytes
     HEADER_SIZE = 12 
 
     def __init__(self, src_ip, dst_ip, payload, ttl = DEFAULT_TTL, protocol = PROTOCOL_UDP):
@@ -67,20 +67,20 @@ class Packet:
 ## Layer 4 - UDP-like Segment with ACK support (rdt2.2)
 class Segment: 
     """
-    Represents a Transport Layer segment (like a UDP segment, extended with
+    Represents a Transport Layer segment (like a UDP segment, with
     sequence numbers and ACK support to implement rdt2.2)
 
     Fields:
-        src_port : 2 bytes  -- sending application's port number
-        dst_port : 2 bytes  -- receiving application's port number
-        length   : 2 bytes  -- total segment size (header + data) in bytes
-        checksum : 2 bytes  -- computed error detection value
-        seg_type : 1 byte   -- 0 = DATA_TYPE segment, 1 = ACK_TYPE segment
-        seq_num  : 1 byte   -- sequence number (0 or 1, alternating)
-        data     : variable -- the application message bytes (empty for ACKs)
+        src_port: 2 bytes
+        dst_port: 2 bytes
+        length: 2 bytes - total segment size (header + data) in bytes
+        checksum: 2 bytes - computed error detection value
+        seg_type: 1 byte - 0 = DATA_TYPE segment, 1 = ACK_TYPE segment
+        seq_num: 1 byte - sequence number (0 or 1)
+        data: variable- the application message bytes (empty for ACKs)
     """
 
-    # Fixed header size in bytes: 2 (src_port) + 2 (dst_port) + 2 (length) + 2 (checksum) + 1 (seg_type) + 1 (seq_num) = 10 bytes
+    ## Fixed header size: 2 (src_port) + 2 (dst_port) + 2 (length) + 2 (checksum) + 1 (seg_type) + 1 (seq_num) = 10 bytes
     HEADER_SIZE = 10 
 
     def __init__(self, src_port, dst_port, seg_type, seq_num, data = b"", checksum = None):
