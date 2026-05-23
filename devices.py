@@ -20,6 +20,7 @@ def ip_in_network(ip, network):
     
     return False
 
+## HOST class as blueprints to simulate Host A and Host B
 class Host:
     def __init__(self, name, ip, mac, routing_table, arp_table):
         self.name = name
@@ -208,3 +209,113 @@ class Host:
             print(f"{self.name}: Layer 4: Incorrect or duplicate ACK received")
             return False
         
+
+
+## ROUTER class as blueprints to simulate Router (R1)
+class Router:
+    def __init__(self, name, routing_table, arp_table):
+        self.name = name
+        self.routing_table = routing_table
+        self.arp_table = arp_table
+        self.mac_learning_table = {} ## learned MAC addresses 
+
+    def loopup_route(self, dst_ip): 
+        ## checks which network the destination IP belongs to
+        for network, route in self.routing_table.items():
+            if ip_in_network(dst_ip, network):
+                return route
+            
+        return None
+    
+    def receive_frame(self, frame, sender):
+        ## extracts packet from frame; removes Layer 2 encapsulation
+        packet = frame.payload
+
+        ## determine incoming interface
+        ## the destination MAC tells the router which interface received the frame
+        if frame.dst_mac == R1_INTERFACE_1_MAC:
+            incoming_interface = "Interface 1"
+        else:
+            incoming_interface = "Interface 2"
+
+        ## Layer 2 logging 
+        print(f"{self.name}: Layer 2: Frame received on {incoming_interface}")
+
+        ## simulates router MAC learning 
+        self.mac_learning_table[frame.src_mac] = incoming_interface
+        print(f"{self.name}: Layer 2: Source MAC learned: {frame.src_mac} on {incoming_interface}")
+
+        ## deliver packet to Layer 3, finished in Layer 2
+        print(f"{self.name}: Layer 2: Packet delivered to Network Layer")
+
+        ## read packet header & destination IP to decide where to forward packet next
+        print(f"{self.name}: Layer 3: Packet received from Data Link Layer: SRC_IP={packet.src_ip}, DST_IP={packet.dst_ip}, TTL={packet.ttl}")
+        print(f"{self.name}: Layer 3: Destination IP read: {packet.dst_ip}")
+
+        ## every router hop reduced TTL 
+        old_ttl = packet.ttl
+        packet.ttl -= 1
+
+        print(f"{self.name}: Layer 3: TTL decremented: {old_ttl} --> {packet.ttl}")
+
+        ## TTL expiry check to prevent infinite routing loops 
+        if packet.ttl <= 0:
+            print(f"{self.name}: Layer 3: Packet dropped due to TTL expiry")
+            return False
+        
+        print(f"{self.name}: Layer 3: Routing table lookup performed")
+
+        ## routing table lookup, checks ROUTING_TABLE_R1 from config.py
+        route = self.lookup_route(packet.dst_ip)
+
+        ## simulates unreachable network
+        if route is None:
+            print(f"{self.name}: Layer 3: Packet dropped because no route was found")
+            return False
+        
+        ## extracting routing decision
+        next_hop_ip, outgoing_interface = route
+
+        ## choose source MAC 
+        ## router creates a new Layer 2 frame so source & destination MAC changes
+        ## however, IP addresses stay the same
+        if next_hop_ip in [HOST_A_IP, HOST_B_IP]:
+            next_hop_ip = packet.dst_ip
+
+        if outgoing_interface == "eth0":
+            interface_name = "Interface 1"
+            src_mac = R1_INTERFACE_1_MAC
+        else:
+            interface_name = "Interface 2"
+            src_mac = R1_INTERFACE_2_MAC
+
+        print(f"{self.name}: Layer 3: Next-hop IP determined: {next_hop_ip}")
+        print(f"{self.name}: Layer 3: Outgoing interface selected ({interface_name})")
+        print(f"{self.name}: Layer 3: Packet forwarded to Data Link Layer")
+
+        print(f"{self.name}: Layer 2: Packet received from Network Layer")
+
+        ## find destination MAC using the ARP table
+        dst_mac = self.arp_table[next_hop_ip]
+
+        print(f"{self.name}: Layer 2: Destination MAC lookup for next-hop IP ({next_hop_ip}) --> {dst_mac}")
+
+        ## create a new frame for re-encapsulation (packet --> new Layer 2 frame)
+        new_frame = Frame(
+            src_mac=src_mac,
+            dst_mac=dst_mac,
+            payload=packet
+        )
+
+        print(f"{self.name}: Layer 2: Frame created: SRC_MAC={src_mac}, DST_MAC={dst_mac}")
+        print(f"{self.name}: Layer 2: Frame forwarded on {interface_name}")
+
+        ## simulates physical delivery 
+        ## router sends frame out interface, host receives frame 
+        if packet.dst_ip == HOST_A_IP:
+            return NETWORK_DEVICES["Host A"].receive_frame(new_frame, self)
+
+        if packet.dst_ip == HOST_B_IP:
+            return NETWORK_DEVICES["Host B"].receive_frame(new_frame, self)
+
+        return False
