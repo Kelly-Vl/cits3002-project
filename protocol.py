@@ -89,11 +89,10 @@ class Segment:
         self.seg_type = seg_type
         self.seq_num = seq_num
         self.data = data  ## Encapsulates application data into UDP-like segment before transmission (bytes object)
-        self.checksum = self.compute_checksum()
         self.length = self.total_size()
+        self.checksum = checksum if checksum is not None else self.compute_checksum()
 
     def compute_checksum(self): 
-        ## Computes 16-bit (2 bytes) checksum over the segment's data bytes
         ## Build the segment as bytes
         segment = (
             self.src_port.to_bytes(2, 'big') +
@@ -105,7 +104,26 @@ class Segment:
             self.data
         )
 
-    def is_valid(self):
+        ## Pad if odd byte length
+        if len(segment) % 2 != 0:
+            segment += b"\x00"
+
+        total = 0
+
+        ## Process into 16-bit words (2 bytes at a time)
+        for i in range(0, len(segment), 2):
+            words = (segment[i] << 8) + segment[i + 1]
+            total += words ## sum of all 16-bit words
+
+            ## Wrap carry bits
+            total = (total & 0xFFFF) + (total >> 16)
+
+        ## One's complement (flip all the bits)
+        checksum = ~total & 0xFFFF
+
+        return checksum
+
+    def verify_checksum(self):
         return self.checksum == self.compute_checksum()
     
     def total_size(self) -> int:

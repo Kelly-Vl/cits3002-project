@@ -29,7 +29,7 @@ ETHER_TYPE_IPV4 = 0x0800 ## Type field, indicates IPv4 payload
 DEFAULT_TTL = 100
 PROTOCOL_UDP = 17 ## Protocol field, indicates UDP payload
 
-## Layer 4 Constants -- Ports (from Protocol Header Definitions examples) & Limits 
+## Layer 4 Constants - Ports (from Protocol Header Definitions examples) & Limits 
 SRC_PORT = 5000
 DST_PORT = 80
 
