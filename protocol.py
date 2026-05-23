@@ -99,8 +99,8 @@ class Segment:
             self.dst_port.to_bytes(2, 'big') +
             self.length.to_bytes(2, 'big') +
             (0).to_bytes(2, 'big') + ## checksum field temporarily zero, will be replaced by computed checksum 
-            bytes([self.seg_type]) +
-            bytes([self.seq_num]) +
+            self.seg_type.to_bytes(1, 'big') +
+            self.seq_num.to_bytes(1, 'big') +
             self.data
         )
 
