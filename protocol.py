@@ -1,6 +1,6 @@
 # Contains header definitions and classes for Layers 2,3, and 4
 
-from config import * 
+from config import *
 
 class Segment: 
     ## Layer 4 - Transport Layer
