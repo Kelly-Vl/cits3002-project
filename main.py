@@ -23,7 +23,7 @@ def main():
     
     # Error handling: Must send non-negative size
     if message_size <= 0:
-        print("Error: message_size must be 0 or greater")
+        print("Error: message_size must be greater than 0")
         return
     
     # Create the simulated Hosts (Host A and Host B)
