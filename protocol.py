@@ -112,10 +112,10 @@ class Segment:
 
         ## Process into 16-bit words (2 bytes at a time)
         for i in range(0, len(segment), 2):
-            words = (segment[i] << 8) + segment[i + 1]
-            total += words ## sum of all 16-bit words
+            total += (segment[i] << 8) + segment[i+1]
 
-            ## Wrap carry bits
+        # Wrap carry bits
+        while total >> 16:
             total = (total & 0xFFFF) + (total >> 16)
 
         ## One's complement (flip all the bits)
