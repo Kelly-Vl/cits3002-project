@@ -12,7 +12,7 @@ The implementation is divided into four main Python files:
 1. `config.py` -- Defines all fixed network parameters: IP addresses, MAC addresses, routing tables, and ARP tables for each device.
 2. `protocol.py` -- Defines the data structures for each layer: `Frame` (Layer 2), `Packet` (Layer 3), and `Segment` (Layer 4), including checksum computation and verification.
 3. `devices.py` -- Implements the `Host` and `Router` classes, containing the full logic for sending, receiving, routing, and forwarding data across all three layers.
-4. `main.py` -- Entry point. Parses the command-line argument, constructs the network devices, and initiates the simulation by sending data from Host A to Host B.
+4. `main.py` -- Parses the command-line argument, constructs the network devices, and initiates the simulation by sending data from Host A to Host B.
 
 ## Project Team
 |   Student Name   | Student Number | 

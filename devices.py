@@ -51,12 +51,12 @@ class Host:
             for i in range(0, len(data), MAX_SEGMENT_SIZE)
         ]
 
-        print(f"{self.name}: Layer 4: Data received from Application Layer. Data size={len(data)}")
         for chunk in chunks:
             ack_received = False
 
             ## DATA segment creation
             while not ack_received:
+                print(f"{self.name}: Layer 4: Data received from Application Layer. Data size={len(chunk)}")
                 segment = Segment(
                     src_port=SRC_PORT,
                     dst_port=DST_PORT,
@@ -68,6 +68,7 @@ class Host:
                 print(f"{self.name}: Layer 4: Checksum computed")
                 print(f"{self.name}: Layer 4: Segment created by adding transport layer header (DATA, seq={self.seq_num}) (encapsulation)")
                 print(f"{self.name}: Layer 4: Segment sent to Network Layer")
+                print("\n")
 
                 ## waiting for ACK before sending next chunk
                 ack_received = self.send_segment(segment, dst_ip, router)
@@ -99,6 +100,7 @@ class Host:
         print(f"{self.name}: Layer 3: Next-hop IP determined: {next_hop_ip}")
         print(f"{self.name}: Layer 3: Outgoing interface selected")
         print(f"{self.name}: Layer 3: Packet forwarded to Data Link Layer")
+        print("\n")
 
         return self.send_packet(packet, next_hop_ip, router)
 
@@ -121,6 +123,7 @@ class Host:
 
         print(f"{self.name}: Layer 2: Frame created: SRC_MAC={self.mac}, DST_MAC={dst_mac}")
         print(f"{self.name}: Layer 2: Frame sent")
+        print("\n")
 
         return router.receive_frame(frame, self)
 
@@ -129,6 +132,7 @@ class Host:
         print(f"{self.name}: Layer 2: Frame received")
         print(f"{self.name}: Layer 2: Source MAC learned: {frame.src_mac}")
         print(f"{self.name}: Layer 2: Packet delivered to Network Layer")
+        print("\n")
 
         packet = frame.payload
 
@@ -142,6 +146,7 @@ class Host:
         
         print(f"{self.name}: Layer 3: Packet identified as local delivery")
         print(f"{self.name}: Layer 3: Segment delivered to Transport Layer")
+        print("\n")
 
         return self.receive_segment(packet.payload, packet.src_ip, sender)
     
@@ -196,18 +201,21 @@ class Host:
 
             print(f"{self.name}: Layer 4: Segment created by adding transport layer header (ACK, seq={ack_seq})")
             print(f"{self.name}: Layer 4: Segment sent to Network Layer")
+            print("\n")
 
             return self.send_segment(ack, src_ip, router)
         
         ## 4. flip sequence number only after correct ACK 
         elif segment.seg_type == ACK_TYPE:
             print(f"{self.name}: Layer 4: ACK received: seq={segment.seq_num}")
+            print("\n")
 
             if segment.seq_num == self.seq_num:
                 self.seq_num = 1 - self.seq_num
                 return True
 
             print(f"{self.name}: Layer 4: Incorrect or duplicate ACK received")
+            print("\n")
             return False
         
 
@@ -234,14 +242,23 @@ class Router:
 
         ## determine incoming interface
         ## the destination MAC tells the router which interface received the frame
-        if frame.dst_mac == R1_INTERFACE_1_MAC:
-            incoming_interface = "Interface 1"
-        elif frame.dst_mac == R1_INTERFACE_2_MAC:
-            incoming_interface = "Interface 2"
-        else:
-            ## prevents router from assuming every non-Interface-1 frame belongs to Interface 2 
+        incoming_iface = R1_MAC_TO_IFACE.get(frame.dst_mac)
+        if incoming_iface is None:
             print(f"{self.name}: Layer 2: Frame dropped because destination MAC does not match router")
             return False
+        
+        incoming_interface = "Interface 1" if incoming_iface == "eth0" else "Interface 2"
+
+        ## determine incoming interface
+        ## the destination MAC tells the router which interface received the frame
+        # if frame.dst_mac == R1_INTERFACE_1_MAC:
+        #     incoming_interface = "Interface 1"
+        # elif frame.dst_mac == R1_INTERFACE_2_MAC:
+        #     incoming_interface = "Interface 2"
+        # else:
+        #     ## prevents router from assuming every non-Interface-1 frame belongs to Interface 2 
+        #     print(f"{self.name}: Layer 2: Frame dropped because destination MAC does not match router")
+        #     return False
 
         ## Layer 2 logging 
         print(f"{self.name}: Layer 2: Frame received on {incoming_interface}")
@@ -252,6 +269,7 @@ class Router:
 
         ## deliver packet to Layer 3, finished in Layer 2
         print(f"{self.name}: Layer 2: Packet delivered to Network Layer")
+        print("\n")
 
         ## read packet header & destination IP to decide where to forward packet next
         print(f"{self.name}: Layer 3: Packet received from Data Link Layer: SRC_IP={packet.src_ip}, DST_IP={packet.dst_ip}, TTL={packet.ttl}")
@@ -287,16 +305,13 @@ class Router:
         if next_hop_ip in [HOST_A_IP, HOST_B_IP]:
             next_hop_ip = packet.dst_ip
 
-        if outgoing_interface == "eth0":
-            interface_name = "Interface 1"
-            src_mac = R1_INTERFACE_1_MAC
-        else:
-            interface_name = "Interface 2"
-            src_mac = R1_INTERFACE_2_MAC
+        interface_name = "Interface 1" if outgoing_interface == "eth0" else "Interface 2"
+        src_mac = R1_INTERFACE_TO_MAC[outgoing_interface]
 
         print(f"{self.name}: Layer 3: Next-hop IP determined: {next_hop_ip}")
         print(f"{self.name}: Layer 3: Outgoing interface selected ({interface_name})")
         print(f"{self.name}: Layer 3: Packet forwarded to Data Link Layer")
+        print("\n")
 
         print(f"{self.name}: Layer 2: Packet received from Network Layer")
 
@@ -319,6 +334,7 @@ class Router:
 
         print(f"{self.name}: Layer 2: Frame created: SRC_MAC={src_mac}, DST_MAC={dst_mac}")
         print(f"{self.name}: Layer 2: Frame forwarded on {interface_name}")
+        print("\n")
 
         ## simulates physical delivery 
         ## router sends frame out interface, host receives frame 
